@@ -1,13 +1,16 @@
+const http = require('http')
 const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
 const config = require('./config/env')
 const { createRedisClient, pingRedis, disconnectRedis } = require('./config/redis')
+const { initSocket } = require('./socket')
 const healthRouter = require('./routes/health')
 const errorHandler = require('./middleware/errorHandler')
 const notFound = require('./middleware/notFound')
 
 const app = express()
+const httpServer = http.createServer(app)
 
 // ─── Security Middleware ───────────────────────────────────────────────────────
 app.use(helmet())
@@ -41,10 +44,8 @@ app.use(errorHandler)
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
 async function startServer() {
-  // Initialize Redis client
+  // Initialize Redis
   createRedisClient()
-
-  // Ping Redis to verify connectivity
   const redisOk = await pingRedis()
   if (redisOk) {
     console.log('[Redis] ✅ Ping successful')
@@ -52,17 +53,34 @@ async function startServer() {
     console.warn('[Redis] ⚠️  Ping failed — server will start but Redis is unavailable')
   }
 
-  const server = app.listen(config.port, () => {
+  // Initialize Socket.IO (attached to httpServer, not app)
+  const io = initSocket(httpServer)
+
+  // Make io accessible in routes/controllers if needed
+  app.set('io', io)
+
+  httpServer.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`[Server] ❌ Port ${config.port} is already in use. Kill the process or change PORT in .env`)
+      process.exit(1)
+    } else {
+      throw err
+    }
+  })
+
+  httpServer.listen(config.port, () => {
     console.log(`\n🚀 Server running on http://localhost:${config.port}`)
     console.log(`   Environment : ${config.nodeEnv}`)
     console.log(`   Health check: http://localhost:${config.port}/api/health`)
-    console.log(`   Redis       : ${redisOk ? '✅ connected' : '❌ unavailable'}\n`)
+    console.log(`   Redis       : ${redisOk ? '✅ connected' : '❌ unavailable'}`)
+    console.log(`   Socket.IO   : ✅ listening\n`)
   })
 
   // ─── Graceful Shutdown ──────────────────────────────────────────────────────
   const shutdown = async (signal) => {
     console.log(`\n[Server] ${signal} received — shutting down gracefully...`)
-    server.close(async () => {
+    io.close(() => console.log('[Socket.IO] Closed'))
+    httpServer.close(async () => {
       await disconnectRedis()
       console.log('[Server] Closed. Goodbye.')
       process.exit(0)
@@ -72,7 +90,7 @@ async function startServer() {
   process.on('SIGTERM', () => shutdown('SIGTERM'))
   process.on('SIGINT', () => shutdown('SIGINT'))
 
-  return server
+  return httpServer
 }
 
 startServer().catch((err) => {
@@ -80,4 +98,4 @@ startServer().catch((err) => {
   process.exit(1)
 })
 
-module.exports = app
+module.exports = { app, httpServer }
