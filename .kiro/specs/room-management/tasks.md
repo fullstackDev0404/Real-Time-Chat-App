@@ -6,7 +6,7 @@ Implement Socket.IO room join/leave logic with Redis-backed membership tracking.
 
 ## Tasks
 
-- [ ] 1. Create the `roomHandler.js` module with validation and join logic
+- [x] 1. Create the `roomHandler.js` module with validation and join logic
   - Create `server/src/socket/roomHandler.js`
   - Implement `validateRoomId(roomId)` — returns `true` if roomId is a non-empty string after trim, `false` otherwise
   - Implement `handleJoinRoom(io, socket, redis, { roomId })`:
@@ -16,8 +16,8 @@ Implement Socket.IO room join/leave logic with Redis-backed membership tracking.
     - Broadcast `roomJoined` to `io.to(roomId)` with payload `{ socketId: socket.id, roomId, timestamp: Date.now() }`
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 5.1, 5.3_
 
-- [ ] 2. Add leave and disconnect logic to `roomHandler.js`
-  - [ ] 2.1 Implement `handleLeaveRoom(io, socket, redis, { roomId })`
+- [x] 2. Add leave and disconnect logic to `roomHandler.js`
+  - [x] 2.1 Implement `handleLeaveRoom(io, socket, redis, { roomId })`
     - Call `validateRoomId`; if invalid, emit `error` event to socket and return
     - Call `socket.leave(roomId)`
     - Call `redis.srem('room:' + roomId + ':members', socket.id)` inside a try/catch; on catch, log and emit `error` to socket
@@ -25,26 +25,26 @@ Implement Socket.IO room join/leave logic with Redis-backed membership tracking.
     - Broadcast `roomLeft` to `io.to(roomId)` with payload `{ socketId: socket.id, roomId, timestamp: Date.now() }`
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 4.2, 5.1, 5.3_
 
-  - [ ] 2.2 Implement `handleDisconnect(io, socket, redis)`
+  - [x] 2.2 Implement `handleDisconnect(io, socket, redis)`
     - Iterate `socket.rooms` (a `Set`); skip the entry equal to `socket.id` (the socket's own private room)
     - For each `roomId`: wrap in try/catch — call `redis.srem`, check `redis.scard`, call `redis.del` if empty, broadcast `roomLeft`; on catch, log error with `{ roomId, socketId: socket.id }` and continue to next room
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 4.2, 5.2_
 
-  - [ ] 2.3 Export `registerRoomHandlers(io, socket, redis)` from `roomHandler.js`
+  - [x] 2.3 Export `registerRoomHandlers(io, socket, redis)` from `roomHandler.js`
     - This function registers `joinRoom`, `leaveRoom`, and `disconnect` listeners on `socket`, delegating to the three handler functions above
     - _Requirements: 1.1, 2.1, 3.1_
 
-- [ ] 3. Wire `roomHandler.js` into the Socket.IO initializer
+- [x] 3. Wire `roomHandler.js` into the Socket.IO initializer
   - Modify `server/src/socket/index.js`
   - Import `createRedisClient` from `../config/redis` and `registerRoomHandlers` from `./roomHandler`
   - Inside `io.on('connection', (socket) => { ... })`, call `registerRoomHandlers(io, socket, createRedisClient())`
   - _Requirements: 1.1, 2.1, 3.1_
 
-- [ ] 4. Checkpoint — verify the server starts and room events work manually
+- [x] 4. Checkpoint — verify the server starts and room events work manually
   - Ensure all existing tests pass, ask the user if questions arise.
 
-- [ ] 5. Set up the test framework and write unit tests for `roomHandler.js`
-  - [ ] 5.1 Install Jest and fast-check as dev dependencies
+- [x] 5. Set up the test framework and write unit tests for `roomHandler.js`
+  - [x] 5.1 Install Jest and fast-check as dev dependencies
     - Run `npm install --save-dev jest fast-check` in `server/`
     - Add `"test": "jest"` script to `server/package.json`
     - _Requirements: (testing infrastructure)_
@@ -107,7 +107,7 @@ Implement Socket.IO room join/leave logic with Redis-backed membership tracking.
     - Minimum 100 iterations
     - _Requirements: 1.4, 2.4, 3.4_
 
-- [ ] 7. Final checkpoint — ensure all tests pass
+- [~] 7. Final checkpoint — ensure all tests pass
   - Run `npm test` in `server/`; ensure all unit and property tests pass, ask the user if questions arise.
 
 ## Task Dependency Graph

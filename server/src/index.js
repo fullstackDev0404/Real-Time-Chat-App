@@ -3,6 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
 const config = require('./config/env')
+const db = require('./config/db')
 const { createRedisClient, pingRedis, disconnectRedis } = require('./config/redis')
 const { initSocket } = require('./socket')
 const healthRouter = require('./routes/health')
@@ -53,6 +54,15 @@ async function startServer() {
     console.warn('[Redis] ⚠️  Ping failed — server will start but Redis is unavailable')
   }
 
+  // Run DB migrations
+  try {
+    await db.migrate.latest()
+    console.log('[DB] ✅ Migrations complete')
+  } catch (err) {
+    console.error('[DB] ❌ Migration failed:', err)
+    process.exit(1)
+  }
+
   // Initialize Socket.IO (attached to httpServer, not app)
   const io = initSocket(httpServer)
 
@@ -73,6 +83,7 @@ async function startServer() {
     console.log(`   Environment : ${config.nodeEnv}`)
     console.log(`   Health check: http://localhost:${config.port}/api/health`)
     console.log(`   Redis       : ${redisOk ? '✅ connected' : '❌ unavailable'}`)
+    console.log(`   DB          : ✅ migrations complete`)
     console.log(`   Socket.IO   : ✅ listening\n`)
   })
 
@@ -82,6 +93,7 @@ async function startServer() {
     io.close(() => console.log('[Socket.IO] Closed'))
     httpServer.close(async () => {
       await disconnectRedis()
+      await db.destroy()
       console.log('[Server] Closed. Goodbye.')
       process.exit(0)
     })

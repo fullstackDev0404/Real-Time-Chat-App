@@ -6,7 +6,7 @@ Implement the `sendMessage` Socket.IO event in a new `messageHandler.js` module,
 
 ## Tasks
 
-- [ ] 1. Create `server/src/socket/messageHandler.js` with validation and send logic
+- [x] 1. Create `server/src/socket/messageHandler.js` with validation and send logic
   - Create `server/src/socket/messageHandler.js`
   - Import `uuidv4` from the `uuid` package (`const { v4: uuidv4 } = require('uuid')`)
   - Implement `validatePayload(roomId, message)`:
@@ -23,17 +23,17 @@ Implement the `sendMessage` Socket.IO event in a new `messageHandler.js` module,
     - Register a `sendMessage` listener on `socket` that calls `handleSendMessage(io, socket, data)`
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.2, 5.3_
 
-- [ ] 2. Wire `messageHandler.js` into the Socket.IO initializer
+- [x] 2. Wire `messageHandler.js` into the Socket.IO initializer
   - Modify `server/src/socket/index.js`
   - Add `const { registerMessageHandlers } = require('./messageHandler')` at the top
   - Inside `io.on('connection', (socket) => { ... })`, call `registerMessageHandlers(io, socket)` after the existing `registerRoomHandlers` call (or after the disconnect/ping handlers if room-management is not yet merged)
   - _Requirements: 1.1, 1.2_
 
-- [ ] 3. Checkpoint — verify the server starts and message events work
+- [x] 3. Checkpoint — verify the server starts and message events work
   - Ensure all existing tests pass, ask the user if questions arise.
 
-- [ ] 4. Set up the test framework (if not already present) and write unit tests
-  - [ ] 4.1 Confirm Jest and fast-check are available as dev dependencies
+- [x] 4. Set up the test framework (if not already present) and write unit tests
+  - [x] 4.1 Confirm Jest and fast-check are available as dev dependencies
     - Check `server/package.json` for `jest` and `fast-check`; if missing, run `npm install --save-dev jest fast-check` in `server/`
     - Ensure `"test": "jest"` script exists in `server/package.json`
     - _Requirements: (testing infrastructure)_
@@ -108,7 +108,7 @@ Implement the `sendMessage` Socket.IO event in a new `messageHandler.js` module,
     - Minimum 100 iterations
     - _Requirements: 1.4_
 
-- [ ] 6. Final checkpoint — ensure all tests pass
+- [~] 6. Final checkpoint — ensure all tests pass
   - Run `npm test` in `server/`; ensure all unit and property tests pass, ask the user if questions arise.
 
 ## Notes

@@ -1,5 +1,8 @@
 const { Server } = require('socket.io')
 const config = require('../config/env')
+const { createRedisClient } = require('../config/redis')
+const { registerRoomHandlers } = require('./roomHandler')
+const { registerMessageHandlers } = require('./messageHandler')
 
 /**
  * Initialize Socket.IO and attach it to the HTTP server.
@@ -32,6 +35,12 @@ function initSocket(httpServer) {
   // ─── Connection Handler ────────────────────────────────────────────────────
   io.on('connection', (socket) => {
     console.log(`[Socket.IO] ✅ Client connected    | id: ${socket.id} | ip: ${socket.handshake.address}`)
+
+    // ── Room Handlers ────────────────────────────────────────────────────────
+    registerRoomHandlers(io, socket, createRedisClient())
+
+    // ── Message Handlers ─────────────────────────────────────────────────────
+    registerMessageHandlers(io, socket)
 
     // ── Disconnection ────────────────────────────────────────────────────────
     socket.on('disconnect', (reason) => {
